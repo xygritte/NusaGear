@@ -464,102 +464,96 @@
     </div>
 
     <script>
-        // Login Form Handler
+        // 1. Inisialisasi Saat Halaman Dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            // Bersihkan sesi lama jika pengguna kembali ke halaman login
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('username');
+            localStorage.removeItem('userRole');
+            
+            // Auto-fill dengan demo credentials untuk memudahkan testing
+            document.getElementById('username').value = 'demo_user';
+            document.getElementById('password').value = 'password123';
+            
+            console.log("Login page ready. Previous session cleared.");
+        });
+
+        // 2. Handler Form Login
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Get form values
+            // Ambil nilai dari input
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
             const category = document.querySelector('input[name="category"]:checked').value;
             
-            // Simple validation
+            // Validasi sederhana
             if (!username || !password) {
                 showMessage('Please fill in all fields', 'error');
                 return;
             }
             
-            // Simulate login process
-            showMessage('Logging in... Please wait', 'success');
+            // Simulasi proses login
+            showMessage('Verifying credentials...', 'success');
             
-            // For demo purposes, we'll simulate a brief delay then redirect
+            // Delay singkat untuk memberikan efek "loading"
             setTimeout(() => {
-                // Store login info in localStorage for other pages to check
+                // MENYIMPAN DATA KE LOCALSTORAGE
+                // Ini adalah kunci agar index.html tahu bahwa user sudah login
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('username', username);
                 localStorage.setItem('userRole', category);
                 localStorage.setItem('loginTime', new Date().toISOString());
                 
-                // Redirect based on selected category
+                // PENGALIHAN HALAMAN (REDIRECT)
                 if (category === 'admin') {
                     showMessage('Login successful! Redirecting to Admin Dashboard...', 'success');
                     setTimeout(() => {
+                        // Pastikan file admin.html sudah ada di repo GitHub Anda
                         window.location.href = 'admin.html';
                     }, 1000);
                 } else {
                     showMessage('Login successful! Redirecting to Home Page...', 'success');
                     setTimeout(() => {
+                        // Mengarahkan ke halaman utama (NusaGear)
                         window.location.href = 'index.html';
                     }, 1000);
                 }
             }, 800);
         });
 
-        // Show message function
+        // 3. Fungsi Menampilkan Pesan
         function showMessage(text, type) {
             const messageEl = document.getElementById('loginMessage');
             messageEl.textContent = text;
             messageEl.className = `message ${type}`;
             messageEl.style.display = 'block';
             
-            // Auto hide after 5 seconds
+            // Hilangkan pesan otomatis setelah 5 detik
             setTimeout(() => {
-                messageEl.style.display = 'none';
+                if(messageEl.textContent === text) {
+                    messageEl.style.display = 'none';
+                }
             }, 5000);
         }
 
-        // Register link handler
-        document.getElementById('registerLink').addEventListener('click', function(e) {
-            e.preventDefault();
-            showMessage('Registration feature would be implemented in a real application', 'success');
-        });
-
-        // Auto-fill for testing
-        document.addEventListener('DOMContentLoaded', function() {
-            // Auto-fill with demo credentials for testing convenience
-            document.getElementById('username').value = 'demo_user';
-            document.getElementById('password').value = 'password123';
-            
-            // Check if user is already logged in
-            if (localStorage.getItem('isLoggedIn') === 'true') {
-                const role = localStorage.getItem('userRole');
-                const username = localStorage.getItem('username');
-                
-                // Pre-select the previous role
-                if (role === 'admin') {
-                    document.getElementById('adminRole').checked = true;
-                } else {
-                    document.getElementById('userRole').checked = true;
-                }
-                
-                // Auto-fill username
-                document.getElementById('username').value = username || 'demo_user';
-                
-                showMessage(`Welcome back, ${username}! You are currently logged in as ${role}.`, 'success');
-            }
-        });
-
-        // Add some interactivity to form inputs
+        // 4. Efek Visual Interaktif pada Input
         const inputs = document.querySelectorAll('.form-control');
         inputs.forEach(input => {
-            // Add focus effect
             input.addEventListener('focus', function() {
                 this.parentElement.style.transform = 'translateY(-2px)';
+                this.parentElement.style.transition = 'all 0.3s ease';
             });
             
             input.addEventListener('blur', function() {
                 this.parentElement.style.transform = 'translateY(0)';
             });
+        });
+
+        // 5. Link Register (Hanya Alert)
+        document.getElementById('registerLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('Fitur registrasi saat ini sedang dalam pengembangan.');
         });
     </script>
 </body>
