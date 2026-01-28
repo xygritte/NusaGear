@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DriveEase | Car Rental Service</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-car"></i>
+                    <h1>DriveEase</h1>
+                </div>
+                
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <nav>
+                    <ul id="navMenu">
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#cars">Cars</a></li>
+                        <li><a href="#how-it-works">How It Works</a></li>
+                        <li><a href="#locations">Locations</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </nav>
+                
+                <button class="cta-button" id="bookNowBtn">Book Now</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <h2>Find the Perfect Car for Your Journey</h2>
+            <p>Choose from a wide selection of vehicles for any occasion - business trips, family vacations, or weekend getaways.</p>
+            <button class="cta-button" id="exploreCarsBtn">Explore Our Fleet</button>
+        </div>
+    </section>
+
+    <!-- Search Form -->
+    <div class="container">
+        <div class="search-form">
+            <h3>Find Your Ideal Car</h3>
+            <form id="searchForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pickupLocation"><i class="fas fa-map-marker-alt"></i> Pick-up Location</label>
+                        <select id="pickupLocation" class="form-control" required>
+                            <option value="">Select Location</option>
+                            <!-- Locations will be populated from database -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pickupDate"><i class="far fa-calendar-alt"></i> Pick-up Date</label>
+                        <input type="date" id="pickupDate" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="returnDate"><i class="far fa-calendar-alt"></i> Return Date</label>
+                        <input type="date" id="returnDate" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="carType"><i class="fas fa-car"></i> Car Type</label>
+                        <select id="carType" class="form-control">
+                            <option value="">All Types</option>
+                            <option value="economy">Economy</option>
+                            <option value="suv">SUV</option>
+                            <option value="luxury">Luxury</option>
+                            <option value="minivan">Minivan</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="transmission"><i class="fas fa-cog"></i> Transmission</label>
+                        <select id="transmission" class="form-control">
+                            <option value="">Any</option>
+                            <option value="Automatic">Automatic</option>
+                            <option value="Manual">Manual</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="cta-button" style="margin-top: 28px; width: 100%;">Search Available Cars</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Car Listings -->
+    <section class="container" id="cars">
+        <h2 class="section-title">Our Popular Vehicles</h2>
+        <div class="cars-grid" id="carsContainer">
+            <!-- Car cards will be populated by JavaScript -->
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="container" id="how-it-works">
+        <h2 class="section-title">How It Works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3>1. Choose Your Car</h3>
+                <p>Browse our wide selection of vehicles and select the one that fits your needs and budget.</p>
+            </div>
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <h3>2. Book & Pay Online</h3>
+                <p>Select your rental dates, choose any additional options, and complete your booking securely online.</p>
+            </div>
+            <div class="step">
+                <div class="step-icon">
+                    <i class="fas fa-key"></i>
+                </div>
+                <h3>3. Pick Up & Go</h3>
+                <p>Visit our location to pick up your car with all paperwork ready. Hit the road and enjoy your journey!</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Locations Section -->
+    <section class="container" id="locations">
+        <h2 class="section-title">Our Locations</h2>
+        <div class="locations-grid" id="locationsContainer">
+            <!-- Locations will be populated from database -->
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <div class="logo">
+                        <i class="fas fa-car"></i>
+                        <h1>DriveEase</h1>
+                    </div>
+                    <p>Providing reliable and affordable car rental services since 2010. We're committed to making your journey comfortable and memorable.</p>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#cars">Our Fleet</a></li>
+                        <li><a href="#how-it-works">How It Works</a></li>
+                        <li><a href="#locations">Locations</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Vehicle Types</h3>
+                    <ul>
+                        <li><a href="#" class="filter-link" data-type="economy">Economy Cars</a></li>
+                        <li><a href="#" class="filter-link" data-type="suv">SUV & Crossovers</a></li>
+                        <li><a href="#" class="filter-link" data-type="luxury">Luxury Vehicles</a></li>
+                        <li><a href="#" class="filter-link" data-type="minivan">Minivans & Vans</a></li>
+                        <li><a href="#" class="filter-link" data-type="electric">Electric Cars</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Contact Info</h3>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Drive Street, Cityville</li>
+                        <li><i class="fas fa-phone"></i> +1 (555) 123-4567</li>
+                        <li><i class="fas fa-envelope"></i> info@driveease.com</li>
+                        <li><i class="fas fa-clock"></i> Mon-Sun: 8:00 AM - 10:00 PM</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; <span id="currentYear"></span> DriveEase Car Rental. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Booking Modal -->
+    <div class="modal" id="bookingModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeModal">&times;</button>
+            <h2>Book Your Car</h2>
+            <form id="bookingForm">
+                <input type="hidden" id="bookingCarId">
+                <div class="form-group">
+                    <label for="bookingCar">Selected Car</label>
+                    <input type="text" id="bookingCar" class="form-control" readonly>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bookingName">Full Name *</label>
+                        <input type="text" id="bookingName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookingEmail">Email *</label>
+                        <input type="email" id="bookingEmail" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bookingPhone">Phone Number *</label>
+                        <input type="tel" id="bookingPhone" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookingDays">Rental Days *</label>
+                        <input type="number" id="bookingDays" class="form-control" min="1" max="30" value="3" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="bookingNotes">Additional Notes (Optional)</label>
+                    <textarea id="bookingNotes" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="cta-button" style="width: 100%; margin-top: 20px;">Complete Booking</button>
+                </div>
+                <div id="bookingMessage" class="message" style="display: none;"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeSuccessModal">&times;</button>
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2>Booking Successful!</h2>
+            <p>Your booking has been confirmed. We've sent a confirmation email with all the details.</p>
+            <p><strong>Booking Reference:</strong> <span id="bookingRef"></span></p>
+            <button class="cta-button" id="closeSuccessBtn" style="width: 100%; margin-top: 20px;">OK</button>
+        </div>
+    </div>
+
+    <!-- Include Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+</html>
