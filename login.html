@@ -464,6 +464,32 @@
     </div>
 
     <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const role = document.querySelector('input[name="category"]:checked').value;
+            
+            // Simulasi Login (Pastikan data tersimpan sebelum pindah halaman)
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('username', username);
+            localStorage.setItem('userRole', role);
+
+            // Beri jeda sedikit agar localStorage selesai menulis data
+            setTimeout(() => {
+                if (role === 'admin') {
+                    // Pastikan Anda sudah membuat file admin.html
+                    window.location.href = 'admin.html';
+                } else {
+                    // Redirect ke index.html
+                    window.location.href = 'index.html';
+                }
+            }, 500);
+        });
+    </script>
+
+    <script>
         // 1. Inisialisasi Saat Halaman Dimuat
         document.addEventListener('DOMContentLoaded', function() {
             // Bersihkan sesi lama jika pengguna kembali ke halaman login
