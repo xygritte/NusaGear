@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | NusaGear</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    
+    <style>
+        /* Admin Layout Adjustments */
+        body { background-color: var(--bg-light); padding-bottom: 50px; }
+        
+        /* Stats Cards - Reusing .step but adjusting padding */
+        .stat-card {
+            background: var(--bg-white);
+            padding: 25px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border-bottom: 4px solid var(--primary-color);
+        }
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--primary-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: 24px;
+        }
+        .stat-info h3 { font-size: 28px; margin-bottom: 0; color: var(--primary-color); }
+        .stat-info p { color: var(--text-light); margin: 0; }
+
+        /* Data Tables - Not in original CSS, creating using existing vars */
+        .table-container {
+            background: var(--bg-white);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            overflow-x: auto;
+            margin-bottom: 40px;
+        }
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap;
+        }
+        .admin-table th {
+            background-color: var(--bg-dark);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 500;
+        }
+        .admin-table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-medium);
+        }
+        .admin-table tr:hover { background-color: var(--bg-light); }
+        
+        /* Status Badges */
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-confirmed { background-color: #dcfce7; color: #166534; }
+        .badge-pending { background-color: #fef9c3; color: #854d0e; }
+        .badge-cancelled { background-color: #fee2e2; color: #991b1b; }
+
+        /* Action Buttons in Table */
+        .btn-icon {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: white;
+            cursor: pointer;
+            color: var(--text-medium);
+            margin-right: 5px;
+        }
+        .btn-icon:hover { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+        
+        /* Overriding Search Form margin for Admin usage */
+        .admin-form-container .search-form {
+            margin: 0;
+            max-width: 100%;
+            box-shadow: none;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-user-shield"></i>
+                    <h1>NusaGear <span style="font-size: 14px; color: var(--text-light); font-weight: 400;">| Admin Panel</span></h1>
+                </div>
+                
+                <nav>
+                    <ul id="navMenu">
+                        <li><a href="#dashboard" class="active">Dashboard</a></li>
+                        <li><a href="#bookings">Bookings</a></li>
+                        <li><a href="#fleet">Fleet Management</a></li>
+                    </ul>
+                </nav>
+                
+                <button class="cta-button-outline" onclick="window.location.href='index.html'">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <section class="section-padding" id="dashboard" style="padding-top: 40px;">
+        <div class="container">
+            <div class="steps" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 40px;">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-car"></i></div>
+                    <div class="stat-info">
+                        <h3 id="totalCars">0</h3>
+                        <p>Total Cars</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                    <div class="stat-info">
+                        <h3 id="totalBookings">0</h3>
+                        <p>Active Bookings</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="stat-info">
+                        <h3 id="totalRevenue">$0</h3>
+                        <p>Est. Revenue</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="bookings" class="mb-40">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 class="section-title" style="margin: 0; text-align: left;">Recent Bookings</h2>
+                    <button class="cta-button" onclick="loadBookings()"><i class="fas fa-sync"></i> Refresh</button>
+                </div>
+
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Ref ID</th>
+                                <th>Customer</th>
+                                <th>Car</th>
+                                <th>Dates</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center">Loading bookings...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="fleet">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 class="section-title" style="margin: 0; text-align: left;">Fleet Management</h2>
+                    <button class="cta-button" id="addCarBtn"><i class="fas fa-plus"></i> Add New Car</button>
+                </div>
+
+                <div class="cars-grid" id="adminCarsContainer">
+                    </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="modal" id="carModal">
+        <div class="modal-content" style="max-width: 700px;">
+            <button class="close-modal" id="closeCarModal">&times;</button>
+            <h2 id="modalTitle">Add New Vehicle</h2>
+            
+            <div class="admin-form-container">
+                <form id="carForm" class="search-form">
+                    <input type="hidden" id="editCarId">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Car Name</label>
+                            <input type="text" id="carName" class="form-control" required placeholder="e.g. Toyota Avanza">
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select id="carCategory" class="form-control" required>
+                                <option value="economy">Economy</option>
+                                <option value="suv">SUV</option>
+                                <option value="luxury">Luxury</option>
+                                <option value="minivan">Minivan</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Transmission</label>
+                            <select id="carTransmission" class="form-control" required>
+                                <option value="Automatic">Automatic</option>
+                                <option value="Manual">Manual</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Price Per Day ($)</label>
+                            <input type="number" id="carPrice" class="form-control" required placeholder="50">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Image URL</label>
+                        <input type="url" id="carImage" class="form-control" placeholder="https://example.com/car.jpg">
+                        <small style="color: var(--text-light);">Leave empty for default image</small>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <button type="submit" class="cta-button" style="width: 100%;">Save Vehicle</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="bookingDetailModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeDetailModal">&times;</button>
+            <h2>Booking Details</h2>
+            <div id="bookingDetailContent">
+                </div>
+            <div class="form-row" style="margin-top: 20px;">
+                <button class="cta-button" style="background-color: #ef4444; width: 100%;">Cancel Booking</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script type="module">
+        import { dbGetCars, dbGetBookings, supabase } from './db.js';
+
+        // Initialize Admin Dashboard
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('Admin Dashboard Initializing...');
+            await loadDashboardData();
+            setupEventListeners();
+        });
+
+        async function loadDashboardData() {
+            try {
+                // Fetch Data
+                const cars = await dbGetCars();
+                const bookings = await dbGetBookings(); // Note: You might need to adjust db.js to allow getting ALL bookings without limit
+
+                // Update Stats
+                document.getElementById('totalCars').textContent = cars.length;
+                document.getElementById('totalBookings').textContent = bookings.length;
+                
+                // Simple revenue calculation (mock)
+                const revenue = bookings.reduce((acc, curr) => acc + (curr.total_price || 0), 0);
+                document.getElementById('totalRevenue').textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(revenue);
+
+                // Render Tables and Grids
+                renderBookingsTable(bookings);
+                renderFleetGrid(cars);
+
+            } catch (error) {
+                console.error('Admin Load Error:', error);
+                alert('Failed to load dashboard data. Check console.');
+            }
+        }
+
+        function renderBookingsTable(bookings) {
+            const tbody = document.getElementById('bookingsTableBody');
+            
+            if (bookings.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No bookings found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = bookings.map(b => `
+                <tr>
+                    <td><strong>${b.booking_reference || 'N/A'}</strong></td>
+                    <td>
+                        <div>${b.customer_name}</div>
+                        <div style="font-size: 12px; color: var(--text-light);">${b.customer_email}</div>
+                    </td>
+                    <td>${b.car_name}</td>
+                    <td>
+                        <div style="font-size: 12px;">${new Date(b.pickup_date).toLocaleDateString()}</div>
+                        <div style="font-size: 12px;">to ${new Date(b.return_date).toLocaleDateString()}</div>
+                    </td>
+                    <td style="font-weight: bold; color: var(--primary-color);">$${b.total_price}</td>
+                    <td><span class="badge badge-confirmed">${b.status || 'Confirmed'}</span></td>
+                    <td>
+                        <button class="btn-icon" title="View Details"><i class="fas fa-eye"></i></button>
+                        <button class="btn-icon" title="Delete" style="color: #ef4444;"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderFleetGrid(cars) {
+            const container = document.getElementById('adminCarsContainer');
+            container.innerHTML = cars.map(car => `
+                <div class="car-card">
+                    <img src="${car.image_url || 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400'}" alt="${car.name}">
+                    <div class="car-details">
+                        <div style="display:flex; justify-content:space-between; align-items:start;">
+                            <h3>${car.name}</h3>
+                            <span class="badge badge-confirmed">Available</span>
+                        </div>
+                        <p>${car.category} • ${car.transmission}</p>
+                        <p class="price">$${car.price_per_day} <span style="font-size: 14px; font-weight: normal; color: #6b7280;">/ day</span></p>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="cta-button-outline" style="flex: 1; padding: 8px;" onclick="alert('Edit functionality would go here')">Edit</button>
+                            <button class="cta-button" style="flex: 1; padding: 8px; background-color: #ef4444;" onclick="alert('Delete functionality would go here')">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function setupEventListeners() {
+            // Modals
+            const carModal = document.getElementById('carModal');
+            document.getElementById('addCarBtn').onclick = () => carModal.style.display = 'flex';
+            document.getElementById('closeCarModal').onclick = () => carModal.style.display = 'none';
+            
+            // Close modal on outside click
+            window.onclick = (e) => {
+                if (e.target == carModal) carModal.style.display = 'none';
+            }
+        }
+
+        // Expose functions to window for onclick handlers
+        window.loadBookings = loadDashboardData;
+    </script>
+</body>
+</html>
