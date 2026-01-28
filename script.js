@@ -1,5 +1,5 @@
 /* ======================================================
-   DRIVEEASE - ENHANCED MAIN APPLICATION SCRIPT
+   DRIVEEASE - FIXED BOOKING SCRIPT
    ====================================================== */
 
 import {
@@ -26,14 +26,14 @@ const DriveEaseApp = (() => {
     searchForm: document.getElementById('searchForm'),
     bookingForm: document.getElementById('bookingForm'),
     
-    // Form Inputs
+    // Search Form Inputs
     pickupLocationSelect: document.getElementById('pickupLocation'),
     pickupDate: document.getElementById('pickupDate'),
     returnDate: document.getElementById('returnDate'),
     carType: document.getElementById('carType'),
     transmission: document.getElementById('transmission'),
     
-    // Booking Modal
+    // Booking Form Inputs
     bookingCarId: document.getElementById('bookingCarId'),
     bookingCar: document.getElementById('bookingCar'),
     bookingName: document.getElementById('bookingName'),
@@ -96,60 +96,67 @@ const DriveEaseApp = (() => {
     },
 
     calculateDays(start, end) {
+      if (!start || !end) return 1;
       const startDate = new Date(start);
       const endDate = new Date(end);
       const diffTime = Math.abs(endDate - startDate);
       return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
     },
 
-    formatDate(dateString) {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    },
-
-    setMinDateForInput(inputElement) {
-      const today = new Date().toISOString().split('T')[0];
-      inputElement.min = today;
+    setMinDateForInput() {
+      const today = new Date();
+      const todayStr = today.toISOString().split('T')[0];
       
-      // Set default pickup to tomorrow
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const tomorrowStr = tomorrow.toISOString().split('T')[0];
-      inputElement.value = tomorrowStr;
+      // Set pickup date (minimum today)
+      if (elements.pickupDate) {
+        elements.pickupDate.min = todayStr;
+        
+        // Set default pickup to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+        elements.pickupDate.value = tomorrowStr;
+      }
       
-      // Set default return to pickup + 3 days
-      const returnDate = new Date(tomorrow);
-      returnDate.setDate(returnDate.getDate() + 3);
-      elements.returnDate.value = returnDate.toISOString().split('T')[0];
-    },
-
-    showLoading(container) {
-      container.innerHTML = `
-        <div class="loading-state">
-          <div class="loading-spinner"></div>
-          <p>Loading...</p>
-        </div>
-      `;
-    },
-
-    showError(message, container) {
-      container.innerHTML = `
-        <div class="error-state">
-          <i class="fas fa-exclamation-triangle"></i>
-          <p>${message}</p>
-          <button class="cta-button-outline" onclick="DriveEaseApp.retryLoading()">Retry</button>
-        </div>
-      `;
+      // Set return date (minimum pickup date + 1 day)
+      if (elements.returnDate && elements.pickupDate) {
+        const pickupDate = new Date(elements.pickupDate.value);
+        const minReturn = new Date(pickupDate);
+        minReturn.setDate(minReturn.getDate() + 1);
+        elements.returnDate.min = minReturn.toISOString().split('T')[0];
+        
+        // Set default return to pickup + 3 days
+        const defaultReturn = new Date(pickupDate);
+        defaultReturn.setDate(defaultReturn.getDate() + 3);
+        elements.returnDate.value = defaultReturn.toISOString().split('T')[0];
+      }
     },
 
     showMessage(element, message, type = 'info') {
+      if (!element) return;
+      
       element.textContent = message;
       element.className = `message ${type}`;
       element.style.display = 'block';
+      
+      // Set color based on type
+      if (type === 'error') {
+        element.style.color = '#ef4444';
+        element.style.backgroundColor = '#fef2f2';
+        element.style.border = '1px solid #fecaca';
+      } else if (type === 'success') {
+        element.style.color = '#10b981';
+        element.style.backgroundColor = '#f0fdf4';
+        element.style.border = '1px solid #bbf7d0';
+      } else {
+        element.style.color = '#3b82f6';
+        element.style.backgroundColor = '#eff6ff';
+        element.style.border = '1px solid #bfdbfe';
+      }
+      
+      element.style.padding = '12px';
+      element.style.borderRadius = '6px';
+      element.style.marginTop = '15px';
       
       setTimeout(() => {
         element.style.display = 'none';
@@ -162,8 +169,9 @@ const DriveEaseApp = (() => {
     },
 
     validatePhone(phone) {
-      const re = /^[\+]?[1-9][\d]{0,15}$/;
-      return re.test(phone.replace(/\D/g, ''));
+      // Accepts numbers, spaces, dashes, parentheses, and +
+      const re = /^[\+]?[1-9][\d\s\-\(\)]{8,}$/;
+      return re.test(phone);
     }
   };
 
@@ -172,12 +180,14 @@ const DriveEaseApp = (() => {
   ===================== */
   const render = {
     cars(data = state.cars) {
+      if (!elements.carsContainer) return;
+      
       if (!data || data.length === 0) {
         elements.carsContainer.innerHTML = `
-          <div class="no-results">
-            <i class="fas fa-car"></i>
-            <h3>No cars available</h3>
-            <p>Try adjusting your filters or check back later.</p>
+          <div class="no-results" style="text-align: center; padding: 40px; grid-column: 1 / -1;">
+            <i class="fas fa-car" style="font-size: 48px; color: #9ca3af; margin-bottom: 20px;"></i>
+            <h3 style="color: #4b5563; margin-bottom: 10px;">No cars available</h3>
+            <p style="color: #6b7280;">Try adjusting your filters or check back later.</p>
           </div>
         `;
         return;
@@ -185,82 +195,61 @@ const DriveEaseApp = (() => {
 
       elements.carsContainer.innerHTML = data.map(car => `
         <div class="car-card" data-id="${car.id}" data-type="${car.category}">
-          <div class="car-image-container">
-            <img src="${car.image_url || 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400&h=250&fit=crop'}" 
-                 alt="${car.name}" 
-                 class="car-image"
-                 onerror="this.src='https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400&h=250&fit=crop'">
-            ${car.is_featured ? '<span class="featured-badge">Featured</span>' : ''}
-          </div>
+          <img src="${car.image_url || 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400&h=250&fit=crop'}" 
+               alt="${car.name}"
+               style="width: 100%; height: 200px; object-fit: cover;">
           <div class="car-details">
-            <div class="car-header">
-              <h3>${car.name}</h3>
-              <span class="car-type">${car.category}</span>
-            </div>
-            <div class="car-features">
-              <span><i class="fas fa-cog"></i> ${car.transmission}</span>
-              <span><i class="fas fa-users"></i> ${car.seats || 5} seats</span>
-              <span><i class="fas fa-gas-pump"></i> ${car.fuel_type || 'Petrol'}</span>
-            </div>
-            <div class="car-price">
-              <div>
-                <strong class="price">${utils.formatCurrency(car.price_per_day)}</strong>
-                <span class="price-label">/ day</span>
-              </div>
-              <button class="cta-button book-btn" data-id="${car.id}">
-                <i class="fas fa-calendar-check"></i> Book Now
-              </button>
-            </div>
+            <h3>${car.name}</h3>
+            <p style="color: #6b7280; margin: 5px 0;">${car.category} • ${car.transmission}</p>
+            <p style="font-size: 24px; font-weight: bold; color: #2563eb; margin: 10px 0;">
+              ${utils.formatCurrency(car.price_per_day)} <span style="font-size: 14px; font-weight: normal; color: #6b7280;">/ day</span>
+            </p>
+            <button class="cta-button book-btn" data-id="${car.id}" style="width: 100%; margin-top: 10px;">
+              <i class="fas fa-calendar-check"></i> Book Now
+            </button>
           </div>
         </div>
       `).join('');
 
-      // Re-attach event listeners
+      // Attach event listeners to book buttons
+      this.attachBookButtonListeners();
+    },
+
+    attachBookButtonListeners() {
+      // Remove existing listeners and add new ones
       document.querySelectorAll('.book-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const carId = btn.dataset.id;
-          DriveEaseApp.openBooking(carId);
+          e.preventDefault();
+          const carId = btn.getAttribute('data-id');
+          if (carId) {
+            DriveEaseApp.openBooking(carId);
+          }
         });
       });
     },
 
     locations(data = state.locations) {
+      if (!elements.locationsContainer) return;
+      
       if (!data || data.length === 0) {
-        elements.locationsContainer.innerHTML = '<p>No locations available</p>';
+        elements.locationsContainer.innerHTML = '<p style="text-align: center; color: #6b7280;">No locations available</p>';
         return;
       }
 
       elements.locationsContainer.innerHTML = data.map(location => `
         <div class="location-card">
-          <div class="location-icon">
-            <i class="fas fa-map-marker-alt"></i>
-          </div>
-          <div class="location-details">
-            <h3>${location.name}</h3>
-            <p class="location-address">${location.address}, ${location.city}</p>
-            <p class="location-hours"><i class="fas fa-clock"></i> ${location.hours || 'Mon-Sun: 8:00 AM - 10:00 PM'}</p>
-            <p class="location-phone"><i class="fas fa-phone"></i> ${location.phone || '+1 (555) 123-4567'}</p>
-          </div>
-          <button class="cta-button-outline select-location" data-id="${location.id}">
-            Select
-          </button>
+          <h3>${location.name}</h3>
+          <p style="color: #6b7280; margin-top: 5px;">
+            <i class="fas fa-map-marker-alt" style="color: #2563eb; margin-right: 8px;"></i>
+            ${location.address}, ${location.city}
+          </p>
         </div>
       `).join('');
-
-      // Add location selection functionality
-      document.querySelectorAll('.select-location').forEach(btn => {
-        btn.addEventListener('click', () => {
-          elements.pickupLocationSelect.value = btn.dataset.id;
-          window.scrollTo({
-            top: elements.searchForm.offsetTop - 100,
-            behavior: 'smooth'
-          });
-        });
-      });
     },
 
     populateLocationSelect(data = state.locations) {
+      if (!elements.pickupLocationSelect) return;
+      
       elements.pickupLocationSelect.innerHTML = '<option value="">Select Location</option>';
       data.forEach(location => {
         const option = document.createElement('option');
@@ -271,8 +260,8 @@ const DriveEaseApp = (() => {
     },
 
     updateCarFilters() {
-      state.filters.category = elements.carType.value;
-      state.filters.transmission = elements.transmission.value;
+      if (elements.carType) state.filters.category = elements.carType.value;
+      if (elements.transmission) state.filters.transmission = elements.transmission.value;
     }
   };
 
@@ -290,16 +279,21 @@ const DriveEaseApp = (() => {
           dbGetLocations()
         ]);
         
-        state.cars = carsData;
-        state.locations = locationsData;
+        state.cars = carsData || [];
+        state.locations = locationsData || [];
         
         render.cars();
         render.locations();
         render.populateLocationSelect();
         
+        console.log('Data loaded successfully:', {
+          cars: state.cars.length,
+          locations: state.locations.length
+        });
+        
       } catch (error) {
         console.error('Error loading initial data:', error);
-        utils.showError('Failed to load data. Please try again.', elements.carsContainer);
+        utils.showMessage(elements.bookingMessage, 'Failed to load data. Please try again.', 'error');
       } finally {
         state.isLoading = false;
       }
@@ -308,49 +302,69 @@ const DriveEaseApp = (() => {
     async searchCars(filters = {}) {
       try {
         state.isLoading = true;
-        utils.showLoading(elements.carsContainer);
         
         const filteredCars = await dbGetCars(filters);
         render.cars(filteredCars);
         
       } catch (error) {
         console.error('Error searching cars:', error);
-        utils.showError('Search failed. Please try again.', elements.carsContainer);
+        utils.showMessage(elements.bookingMessage, 'Search failed. Please try again.', 'error');
       } finally {
         state.isLoading = false;
       }
     },
 
     async filterByCategory(category) {
-      elements.carType.value = category;
+      if (elements.carType) {
+        elements.carType.value = category;
+      }
       render.updateCarFilters();
       await dataManager.searchCars(state.filters);
       
       // Scroll to cars section
-      document.getElementById('cars').scrollIntoView({ behavior: 'smooth' });
+      const carsSection = document.getElementById('cars');
+      if (carsSection) {
+        carsSection.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
   /* =====================
-     BOOKING MANAGEMENT
+     BOOKING MANAGEMENT - FIXED VERSION
   ===================== */
   const bookingManager = {
     async openBooking(carId) {
       try {
+        console.log('Opening booking for car ID:', carId);
+        
         state.selectedCar = state.cars.find(c => c.id == carId);
         if (!state.selectedCar) {
+          console.error('Car not found:', carId);
           utils.showMessage(elements.bookingMessage, 'Car not found.', 'error');
           return;
         }
 
         // Reset and populate form
-        elements.bookingForm.reset();
-        elements.bookingCarId.value = state.selectedCar.id;
-        elements.bookingCar.value = state.selectedCar.name;
-        elements.bookingDays.value = 3;
+        if (elements.bookingForm) {
+          elements.bookingForm.reset();
+        }
+        
+        if (elements.bookingCarId) {
+          elements.bookingCarId.value = state.selectedCar.id;
+        }
+        
+        if (elements.bookingCar) {
+          elements.bookingCar.value = state.selectedCar.name;
+        }
+        
+        if (elements.bookingDays) {
+          elements.bookingDays.value = 3;
+        }
 
         // Show modal
         this.showModal(elements.bookingModal);
+        
+        console.log('Booking modal opened for:', state.selectedCar.name);
         
       } catch (error) {
         console.error('Error opening booking:', error);
@@ -361,17 +375,38 @@ const DriveEaseApp = (() => {
     async submitBooking(event) {
       event.preventDefault();
       
-      if (!this.validateBookingForm()) return;
+      console.log('Submitting booking...');
+      
+      // Validate form - SIMPLIFIED VERSION
+      if (!this.validateBookingFormSimple()) {
+        console.log('Form validation failed');
+        return;
+      }
       
       try {
-        const formData = this.getFormData();
+        // Get form data
+        const formData = this.getFormDataSimple();
+        console.log('Form data:', formData);
+        
+        if (!state.selectedCar) {
+          utils.showMessage(elements.bookingMessage, 'No car selected.', 'error');
+          return;
+        }
+        
+        // Use dates from search form or default
+        const pickupDate = elements.pickupDate ? elements.pickupDate.value : formData.pickupDate;
+        const returnDate = elements.returnDate ? elements.returnDate.value : formData.returnDate;
+        
+        console.log('Checking availability for dates:', pickupDate, returnDate);
         
         // Check availability
         const isAvailable = await dbCheckAvailability(
-          formData.carId,
-          formData.pickupDate,
-          formData.returnDate
+          state.selectedCar.id,
+          pickupDate,
+          returnDate
         );
+        
+        console.log('Availability check result:', isAvailable);
         
         if (!isAvailable) {
           utils.showMessage(elements.bookingMessage, 'Car is not available on selected dates.', 'error');
@@ -379,30 +414,41 @@ const DriveEaseApp = (() => {
         }
         
         // Calculate total
-        const days = utils.calculateDays(formData.pickupDate, formData.returnDate);
+        const days = utils.calculateDays(pickupDate, returnDate);
         const totalPrice = state.selectedCar.price_per_day * days;
+        
+        // Get location
+        let pickupLocationText = 'Selected Location';
+        if (elements.pickupLocationSelect && elements.pickupLocationSelect.value) {
+          const selectedOption = elements.pickupLocationSelect.options[elements.pickupLocationSelect.selectedIndex];
+          pickupLocationText = selectedOption ? selectedOption.text : 'Selected Location';
+        }
         
         // Prepare booking data
         const bookingData = {
-          car_id: formData.carId,
+          car_id: state.selectedCar.id,
           car_name: state.selectedCar.name,
           customer_name: formData.name,
           customer_email: formData.email,
           customer_phone: formData.phone,
-          pickup_location_id: formData.locationId,
-          pickup_date: formData.pickupDate,
-          return_date: formData.returnDate,
+          pickup_location: pickupLocationText,
+          pickup_date: pickupDate,
+          return_date: returnDate,
           total_days: days,
           total_price: totalPrice,
           notes: formData.notes,
           status: 'confirmed',
-          booking_reference: utils.generateBookingRef()
+          booking_reference: utils.generateBookingRef(),
+          created_at: new Date().toISOString()
         };
         
-        // Save booking
-        await dbCreateBooking(bookingData);
+        console.log('Saving booking:', bookingData);
         
-        // Show success
+        // Save booking
+        const savedBooking = await dbCreateBooking(bookingData);
+        console.log('Booking saved:', savedBooking);
+        
+        // Show success modal
         this.showSuccess(bookingData.booking_reference);
         
       } catch (error) {
@@ -411,91 +457,79 @@ const DriveEaseApp = (() => {
       }
     },
 
-    validateBookingForm() {
+    // SIMPLIFIED VALIDATION - Only check required fields in booking form
+    validateBookingFormSimple() {
       let isValid = true;
       
       // Clear previous errors
-      document.querySelectorAll('.error-message').forEach(el => el.remove());
-      document.querySelectorAll('.form-group').forEach(el => el.classList.remove('error'));
-      
-      // Validate name
-      if (!elements.bookingName.value.trim()) {
-        this.showFieldError(elements.bookingName, 'Name is required');
-        isValid = false;
+      if (elements.bookingMessage) {
+        elements.bookingMessage.style.display = 'none';
       }
       
-      // Validate email
-      if (!elements.bookingEmail.value.trim()) {
-        this.showFieldError(elements.bookingEmail, 'Email is required');
-        isValid = false;
-      } else if (!utils.validateEmail(elements.bookingEmail.value)) {
-        this.showFieldError(elements.bookingEmail, 'Invalid email address');
-        isValid = false;
+      // Check if all required fields in booking form are filled
+      if (!elements.bookingName || !elements.bookingName.value.trim()) {
+        utils.showMessage(elements.bookingMessage, 'Please enter your name.', 'error');
+        return false;
       }
       
-      // Validate phone
-      if (!elements.bookingPhone.value.trim()) {
-        this.showFieldError(elements.bookingPhone, 'Phone number is required');
-        isValid = false;
-      } else if (!utils.validatePhone(elements.bookingPhone.value)) {
-        this.showFieldError(elements.bookingPhone, 'Invalid phone number');
-        isValid = false;
+      if (!elements.bookingEmail || !elements.bookingEmail.value.trim()) {
+        utils.showMessage(elements.bookingMessage, 'Please enter your email.', 'error');
+        return false;
       }
       
-      // Validate location
-      if (!elements.pickupLocationSelect.value) {
-        this.showFieldError(elements.pickupLocationSelect, 'Please select a location');
-        isValid = false;
+      if (!utils.validateEmail(elements.bookingEmail.value)) {
+        utils.showMessage(elements.bookingMessage, 'Please enter a valid email address.', 'error');
+        return false;
       }
       
-      // Validate dates
-      if (!elements.pickupDate.value || !elements.returnDate.value) {
-        this.showFieldError(elements.pickupDate, 'Please select dates');
-        isValid = false;
+      if (!elements.bookingPhone || !elements.bookingPhone.value.trim()) {
+        utils.showMessage(elements.bookingMessage, 'Please enter your phone number.', 'error');
+        return false;
       }
       
-      return isValid;
+      // Check if location is selected in search form
+      if (!elements.pickupLocationSelect || !elements.pickupLocationSelect.value) {
+        utils.showMessage(elements.bookingMessage, 'Please select a pickup location in the search form above.', 'error');
+        return false;
+      }
+      
+      // Check if dates are selected in search form
+      if (!elements.pickupDate || !elements.pickupDate.value || !elements.returnDate || !elements.returnDate.value) {
+        utils.showMessage(elements.bookingMessage, 'Please select pickup and return dates in the search form above.', 'error');
+        return false;
+      }
+      
+      return true;
     },
 
-    getFormData() {
-      const location = state.locations.find(l => l.id == elements.pickupLocationSelect.value);
-      
+    // SIMPLIFIED FORM DATA EXTRACTION
+    getFormDataSimple() {
       return {
-        carId: elements.bookingCarId.value,
-        name: elements.bookingName.value.trim(),
-        email: elements.bookingEmail.value.trim(),
-        phone: elements.bookingPhone.value.trim(),
-        locationId: elements.pickupLocationSelect.value,
-        pickupLocation: location ? `${location.name}, ${location.city}` : '',
-        pickupDate: elements.pickupDate.value,
-        returnDate: elements.returnDate.value,
-        days: parseInt(elements.bookingDays.value),
-        notes: elements.bookingNotes.value.trim()
+        name: elements.bookingName ? elements.bookingName.value.trim() : '',
+        email: elements.bookingEmail ? elements.bookingEmail.value.trim() : '',
+        phone: elements.bookingPhone ? elements.bookingPhone.value.trim() : '',
+        pickupDate: elements.pickupDate ? elements.pickupDate.value : '',
+        returnDate: elements.returnDate ? elements.returnDate.value : '',
+        notes: elements.bookingNotes ? elements.bookingNotes.value.trim() : ''
       };
     },
 
-    showFieldError(input, message) {
-      const formGroup = input.closest('.form-group');
-      formGroup.classList.add('error');
-      
-      const errorDiv = document.createElement('div');
-      errorDiv.className = 'error-message';
-      errorDiv.textContent = message;
-      formGroup.appendChild(errorDiv);
-    },
-
     showModal(modal) {
+      if (!modal) return;
       modal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
     },
 
     closeModal(modal) {
+      if (!modal) return;
       modal.style.display = 'none';
       document.body.style.overflow = 'auto';
     },
 
     showSuccess(bookingRef) {
-      elements.bookingRef.textContent = bookingRef;
+      if (elements.bookingRef) {
+        elements.bookingRef.textContent = bookingRef;
+      }
       this.closeModal(elements.bookingModal);
       this.showModal(elements.successModal);
     }
@@ -506,50 +540,79 @@ const DriveEaseApp = (() => {
   ===================== */
   const eventHandlers = {
     setupEventListeners() {
+      console.log('Setting up event listeners...');
+      
       // Search form
-      elements.searchForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        render.updateCarFilters();
-        dataManager.searchCars(state.filters);
-      });
+      if (elements.searchForm) {
+        elements.searchForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          console.log('Search form submitted');
+          render.updateCarFilters();
+          dataManager.searchCars(state.filters);
+        });
+      }
 
       // Booking form
-      elements.bookingForm.addEventListener('submit', (e) => {
-        bookingManager.submitBooking(e);
-      });
+      if (elements.bookingForm) {
+        elements.bookingForm.addEventListener('submit', (e) => {
+          bookingManager.submitBooking(e);
+        });
+      }
 
       // Modal controls
-      elements.closeModal.addEventListener('click', () => {
-        bookingManager.closeModal(elements.bookingModal);
-      });
+      if (elements.closeModal) {
+        elements.closeModal.addEventListener('click', () => {
+          bookingManager.closeModal(elements.bookingModal);
+        });
+      }
       
-      elements.closeSuccessModal.addEventListener('click', () => {
-        bookingManager.closeModal(elements.successModal);
-      });
+      if (elements.closeSuccessModal) {
+        elements.closeSuccessModal.addEventListener('click', () => {
+          bookingManager.closeModal(elements.successModal);
+        });
+      }
       
-      elements.closeSuccessBtn.addEventListener('click', () => {
-        bookingManager.closeModal(elements.successModal);
-      });
+      if (elements.closeSuccessBtn) {
+        elements.closeSuccessBtn.addEventListener('click', () => {
+          bookingManager.closeModal(elements.successModal);
+        });
+      }
 
       // Mobile menu
-      elements.mobileMenuBtn.addEventListener('click', this.toggleMobileMenu);
+      if (elements.mobileMenuBtn) {
+        elements.mobileMenuBtn.addEventListener('click', this.toggleMobileMenu);
+      }
       
-      // Book Now button
-      elements.bookNowBtn.addEventListener('click', () => {
-        document.getElementById('cars').scrollIntoView({ behavior: 'smooth' });
-      });
+      // Book Now button in header
+      if (elements.bookNowBtn) {
+        elements.bookNowBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const carsSection = document.getElementById('cars');
+          if (carsSection) {
+            carsSection.scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      }
       
       // Explore Cars button
-      elements.exploreCarsBtn.addEventListener('click', () => {
-        document.getElementById('cars').scrollIntoView({ behavior: 'smooth' });
-      });
+      if (elements.exploreCarsBtn) {
+        elements.exploreCarsBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const carsSection = document.getElementById('cars');
+          if (carsSection) {
+            carsSection.scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      }
 
       // Filter links in footer
       document.querySelectorAll('.filter-link').forEach(link => {
         link.addEventListener('click', (e) => {
           e.preventDefault();
-          const category = e.target.dataset.type;
-          dataManager.filterByCategory(category);
+          const category = e.target.dataset.type || e.target.closest('a').dataset.type;
+          if (category) {
+            dataManager.filterByCategory(category);
+          }
         });
       });
 
@@ -563,18 +626,24 @@ const DriveEaseApp = (() => {
         }
       });
 
-      // Date validation
-      elements.pickupDate.addEventListener('change', () => {
-        if (elements.returnDate.value && new Date(elements.returnDate.value) <= new Date(elements.pickupDate.value)) {
-          const minReturn = new Date(elements.pickupDate.value);
-          minReturn.setDate(minReturn.getDate() + 1);
-          elements.returnDate.value = minReturn.toISOString().split('T')[0];
-        }
-        elements.returnDate.min = elements.pickupDate.value;
-      });
+      // Date validation in search form
+      if (elements.pickupDate && elements.returnDate) {
+        elements.pickupDate.addEventListener('change', () => {
+          if (elements.returnDate.value && new Date(elements.returnDate.value) <= new Date(elements.pickupDate.value)) {
+            const minReturn = new Date(elements.pickupDate.value);
+            minReturn.setDate(minReturn.getDate() + 1);
+            elements.returnDate.value = minReturn.toISOString().split('T')[0];
+          }
+          elements.returnDate.min = elements.pickupDate.value;
+        });
+      }
+      
+      console.log('Event listeners setup complete');
     },
 
     toggleMobileMenu() {
+      if (!elements.navMenu) return;
+      
       elements.navMenu.classList.toggle('show');
       const icon = elements.mobileMenuBtn.querySelector('i');
       if (elements.navMenu.classList.contains('show')) {
@@ -592,26 +661,27 @@ const DriveEaseApp = (() => {
   ===================== */
   const init = {
     async start() {
-      // Set current year
+      console.log('Initializing DriveEase App...');
+      
+      // Set current year in footer
       if (elements.currentYear) {
         elements.currentYear.textContent = new Date().getFullYear();
       }
 
-      // Set min dates
-      utils.setMinDateForInput(elements.pickupDate);
-      if (elements.returnDate) {
-        elements.returnDate.min = elements.pickupDate.value;
-      }
+      // Set min dates for forms
+      utils.setMinDateForInput();
 
       // Test database connection
       try {
+        console.log('Testing database connection...');
         const connected = await dbTestConnection();
         if (!connected) {
           throw new Error('Database connection failed');
         }
+        console.log('Database connection successful');
       } catch (error) {
         console.error('Database connection error:', error);
-        utils.showError('Cannot connect to server. Some features may be unavailable.', elements.carsContainer);
+        utils.showMessage(elements.bookingMessage, 'Cannot connect to server. Some features may be unavailable.', 'error');
       }
 
       // Load data
@@ -629,6 +699,21 @@ const DriveEaseApp = (() => {
     addMobileMenuStyles() {
       const style = document.createElement('style');
       style.textContent = `
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+        
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
         @media (max-width: 768px) {
           #navMenu {
             display: none;
@@ -637,11 +722,12 @@ const DriveEaseApp = (() => {
             left: 0;
             right: 0;
             background: white;
-            box-shadow: var(--shadow-md);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             padding: 20px;
             flex-direction: column;
             gap: 15px;
             z-index: 1000;
+            border-top: 1px solid #e5e7eb;
           }
           
           #navMenu.show {
@@ -649,38 +735,23 @@ const DriveEaseApp = (() => {
             animation: slideDown 0.3s ease;
           }
           
-          .loading-state, .error-state {
-            text-align: center;
-            padding: 40px;
+          .car-card {
+            transition: transform 0.3s, box-shadow 0.3s;
           }
           
-          .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--primary-light);
-            border-top-color: var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+          .car-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
           }
-          
-          .error-state i {
-            font-size: 48px;
-            color: #ef4444;
-            margin-bottom: 20px;
-          }
-          
-          .featured-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: var(--accent-color);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-          }
+        }
+        
+        .modal {
+          animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
       `;
       document.head.appendChild(style);
@@ -703,6 +774,7 @@ const DriveEaseApp = (() => {
     // Booking Management
     openBooking: bookingManager.openBooking.bind(bookingManager),
     closeBooking: () => bookingManager.closeModal(elements.bookingModal),
+    submitBookingTest: (formData) => bookingManager.submitBooking({ preventDefault: () => {} }),
     
     // Utility Functions
     formatCurrency: utils.formatCurrency,
@@ -718,8 +790,10 @@ const DriveEaseApp = (() => {
    APPLICATION START
 ===================== */
 document.addEventListener('DOMContentLoaded', () => {
-  // Add loading indicator to body
-  document.body.insertAdjacentHTML('beforeend', `
+  console.log('DOM loaded, starting app...');
+  
+  // Add loading indicator
+  const loaderHTML = `
     <div id="appLoader" style="
       position: fixed;
       top: 0;
@@ -745,32 +819,76 @@ document.addEventListener('DOMContentLoaded', () => {
       "></div>
       <p style="color: #4b5563; font-family: 'Poppins', sans-serif;">Loading DriveEase...</p>
     </div>
-  `);
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', loaderHTML);
+  
+  // Add spin animation
+  const spinStyle = document.createElement('style');
+  spinStyle.textContent = `
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  `;
+  document.head.appendChild(spinStyle);
   
   // Initialize app
-  DriveEaseApp.init().finally(() => {
+  DriveEaseApp.init().then(() => {
+    console.log('App initialization complete');
+  }).catch(error => {
+    console.error('App initialization failed:', error);
+  }).finally(() => {
     // Remove loading indicator
-    const loader = document.getElementById('appLoader');
-    if (loader) {
-      loader.style.opacity = '0';
-      setTimeout(() => loader.remove(), 300);
-    }
+    setTimeout(() => {
+      const loader = document.getElementById('appLoader');
+      if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => {
+          if (loader.parentNode) {
+            loader.parentNode.removeChild(loader);
+          }
+        }, 300);
+      }
+    }, 500);
   });
 });
 
 /* =====================
-   GLOBAL ACCESS
+   GLOBAL ACCESS & DEBUG HELPERS
 ===================== */
-// Make app accessible globally for debugging
 window.DriveEaseApp = DriveEaseApp;
 
-// Add global error handler
-window.addEventListener('error', (event) => {
-  console.error('Global error:', event.error);
-  // You could send this to an error tracking service
-});
+// Debug helper to test booking manually
+window.testBooking = function(carId = null) {
+  if (!carId && DriveEaseApp.getState().cars.length > 0) {
+    carId = DriveEaseApp.getState().cars[0].id;
+  }
+  
+  if (carId) {
+    console.log('Testing booking for car ID:', carId);
+    DriveEaseApp.openBooking(carId);
+    
+    // Auto-fill form for testing
+    setTimeout(() => {
+      const nameInput = document.getElementById('bookingName');
+      const emailInput = document.getElementById('bookingEmail');
+      const phoneInput = document.getElementById('bookingPhone');
+      
+      if (nameInput) nameInput.value = 'Test User';
+      if (emailInput) emailInput.value = 'test@example.com';
+      if (phoneInput) phoneInput.value = '+1234567890';
+      
+      console.log('Test form auto-filled. Please click Submit to test booking.');
+    }, 500);
+  } else {
+    console.error('No cars available for testing');
+  }
+};
 
-// Add unhandled promise rejection handler
-window.addEventListener('unhandledrejection', (event) => {
-  console.error('Unhandled promise rejection:', event.reason);
-});
+// Log available methods
+console.log('DriveEase App loaded. Available methods:');
+console.log('• DriveEaseApp.openBooking(carId)');
+console.log('• DriveEaseApp.searchCars(filters)');
+console.log('• DriveEaseApp.filterByCategory(category)');
+console.log('• testBooking() - for manual testing');
+console.log('• DriveEaseApp.getState() - for debugging');
