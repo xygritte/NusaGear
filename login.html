@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | NusaGear Car Rental</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        /* Reset and Variables */
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #e0e7ff;
+            --secondary-color: #1e293b;
+            --accent-color: #f97316;
+            --text-dark: #1a1a1a;
+            --text-medium: #4b5563;
+            --text-light: #6b7280;
+            --bg-white: #ffffff;
+            --bg-light: #f9f9f9;
+            --bg-dark: #1e293b;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 5px 15px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 15px 30px rgba(0, 0, 0, 0.12);
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-medium);
+            background-color: var(--bg-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-light) 0%, #f3f4f6 100%);
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            color: var(--text-dark);
+            line-height: 1.3;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+            transition: color 0.2s ease;
+        }
+
+        /* Login Container */
+        .login-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: var(--bg-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Login Header */
+        .login-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .login-header::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            left: -30px;
+            width: 100px;
+            height: 100px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo i {
+            font-size: 42px;
+            color: white;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .logo h1 {
+            font-size: 32px;
+            color: white;
+            letter-spacing: -0.5px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .login-header p {
+            font-size: 16px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Login Form */
+        .login-form {
+            padding: 40px 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: var(--text-dark);
+            font-size: 15px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px 18px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            transition: all 0.2s ease;
+            background-color: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            font-size: 18px;
+        }
+
+        .input-with-icon .form-control {
+            padding-left: 50px;
+        }
+
+        /* Category Selection */
+        .category-selection {
+            margin: 30px 0;
+        }
+
+        .category-selection h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: var(--text-dark);
+            text-align: center;
+        }
+
+        .category-options {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .category-option {
+            flex: 1;
+            text-align: center;
+        }
+
+        .category-option input[type="radio"] {
+            display: none;
+        }
+
+        .category-option label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: white;
+        }
+
+        .category-option label:hover {
+            border-color: var(--primary-light);
+            background-color: var(--bg-light);
+        }
+
+        .category-option input[type="radio"]:checked + label {
+            border-color: var(--primary-color);
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
+
+        .category-option i {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .category-option span {
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        /* Buttons */
+        .login-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .login-button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .login-button i {
+            font-size: 18px;
+        }
+
+        /* Demo Credentials */
+        .demo-credentials {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--bg-light);
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .demo-credentials h4 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .demo-credentials h4 i {
+            color: var(--primary-color);
+        }
+
+        .demo-credentials p {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .demo-credentials ul {
+            padding-left: 20px;
+            font-size: 14px;
+            color: var(--text-medium);
+        }
+
+        .demo-credentials li {
+            margin-bottom: 5px;
+        }
+
+        /* Messages */
+        .message {
+            padding: 15px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .message.error {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* Footer */
+        .login-footer {
+            text-align: center;
+            padding: 20px 30px;
+            background-color: var(--bg-light);
+            color: var(--text-light);
+            font-size: 14px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .login-footer a {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 576px) {
+            .login-container {
+                max-width: 100%;
+            }
+            
+            .login-header {
+                padding: 30px 20px;
+            }
+            
+            .logo h1 {
+                font-size: 26px;
+            }
+            
+            .login-form {
+                padding: 30px 20px;
+            }
+            
+            .category-options {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Login Header -->
+        <div class="login-header">
+            <div class="logo">
+                <i class="fas fa-car"></i>
+                <h1>NusaGear</h1>
+            </div>
+            <p>Car Rental Service Portal</p>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="login-form">
+            <!-- Message Display -->
+            <div id="loginMessage" class="message"></div>
+
+            <!-- Username Field -->
+            <div class="form-group">
+                <label for="username">Username</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" class="form-control" placeholder="Enter your username" required>
+                </div>
+            </div>
+
+            <!-- Password Field -->
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" class="form-control" placeholder="Enter your password" required>
+                </div>
+            </div>
+
+            <!-- Category Selection -->
+            <div class="category-selection">
+                <h3>Select Login Category</h3>
+                <div class="category-options">
+                    <div class="category-option">
+                        <input type="radio" id="userRole" name="category" value="user" checked>
+                        <label for="userRole">
+                            <i class="fas fa-user-circle"></i>
+                            <span>User</span>
+                        </label>
+                    </div>
+                    <div class="category-option">
+                        <input type="radio" id="adminRole" name="category" value="admin">
+                        <label for="adminRole">
+                            <i class="fas fa-user-shield"></i>
+                            <span>Admin</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Login Button -->
+            <button type="submit" class="login-button">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Sign In</span>
+            </button>
+
+            <!-- Demo Credentials -->
+            <div class="demo-credentials">
+                <h4><i class="fas fa-info-circle"></i> Demo Credentials (For Testing)</h4>
+                <p>Any username and password will work for testing:</p>
+                <ul>
+                    <li><strong>User Login:</strong> Select "User" category → Redirects to index.html</li>
+                    <li><strong>Admin Login:</strong> Select "Admin" category → Redirects to admin.html</li>
+                </ul>
+            </div>
+        </form>
+
+        <!-- Footer -->
+        <div class="login-footer">
+            <p>Don't have an account? <a href="#" id="registerLink">Register here</a> | <a href="index.html">Back to Home</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Login Form Handler
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const category = document.querySelector('input[name="category"]:checked').value;
+            
+            // Simple validation
+            if (!username || !password) {
+                showMessage('Please fill in all fields', 'error');
+                return;
+            }
+            
+            // Simulate login process
+            showMessage('Logging in... Please wait', 'success');
+            
+            // For demo purposes, we'll simulate a brief delay then redirect
+            setTimeout(() => {
+                // Store login info in localStorage for other pages to check
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('username', username);
+                localStorage.setItem('userRole', category);
+                localStorage.setItem('loginTime', new Date().toISOString());
+                
+                // Redirect based on selected category
+                if (category === 'admin') {
+                    showMessage('Login successful! Redirecting to Admin Dashboard...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'admin.html';
+                    }, 1000);
+                } else {
+                    showMessage('Login successful! Redirecting to Home Page...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                }
+            }, 800);
+        });
+
+        // Show message function
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('loginMessage');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            messageEl.style.display = 'block';
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 5000);
+        }
+
+        // Register link handler
+        document.getElementById('registerLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            showMessage('Registration feature would be implemented in a real application', 'success');
+        });
+
+        // Auto-fill for testing
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-fill with demo credentials for testing convenience
+            document.getElementById('username').value = 'demo_user';
+            document.getElementById('password').value = 'password123';
+            
+            // Check if user is already logged in
+            if (localStorage.getItem('isLoggedIn') === 'true') {
+                const role = localStorage.getItem('userRole');
+                const username = localStorage.getItem('username');
+                
+                // Pre-select the previous role
+                if (role === 'admin') {
+                    document.getElementById('adminRole').checked = true;
+                } else {
+                    document.getElementById('userRole').checked = true;
+                }
+                
+                // Auto-fill username
+                document.getElementById('username').value = username || 'demo_user';
+                
+                showMessage(`Welcome back, ${username}! You are currently logged in as ${role}.`, 'success');
+            }
+        });
+
+        // Add some interactivity to form inputs
+        const inputs = document.querySelectorAll('.form-control');
+        inputs.forEach(input => {
+            // Add focus effect
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'translateY(-2px)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body>
+</html>
